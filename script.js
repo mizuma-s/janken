@@ -7,6 +7,8 @@ async function init() {
     console.log("モデルをロード中...");
     model = await tmPose.load(modelURL, metadataURL);
     console.log("モデルのロードが完了しました。");
+    // モデルが期待する入力形状を確認
+    console.log("モデルが期待する入力形状:", model.inputs[0].shape);
     // カメラの初期化
     const videoElement = document.getElementById("webcam");
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -35,13 +37,20 @@ async function predictPose(videoElement) {
     canvas.height = 480;
     // 映像を canvas に描画
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-    console.log("canvas に描画完了。推論を開始します...");
+    console.log("canvas に描画完了。");
     // TensorFlow.js の fromPixels を使用
     const inputTensor = tf.browser.fromPixels(canvas);
     console.log("Tensor 作成成功:", inputTensor);
-    // model.predict を直接実行
-    const prediction = await model.predict(inputTensor);
-    console.log("prediction:", prediction);
+    console.log("Tensor の形状:", inputTensor.shape);
+    console.log("Tensor の型:", inputTensor.dtype);
+    // モデルの期待する形状にリシェイプ
+    const resizedTensor = inputTensor.expandDims(0); // バッチ次元を追加
+    console.log("リシェイプ後のテンソル:", resizedTensor.shape);
+    console.log("リシェイプ後の型:", resizedTensor.dtype);
+    // モデルに入力を渡して推論
+    console.log("推論を開始します...");
+    const prediction = await model.predict(resizedTensor);
+    console.log("推論結果:", prediction);
     let highestConfidence = 0;
     let detectedPose = "";
     prediction.forEach(p => {
@@ -52,6 +61,9 @@ async function predictPose(videoElement) {
     });
     document.getElementById("result").innerText = `${detectedPose} (${(highestConfidence * 100).toFixed(2)}%)`;
     console.log("推論結果:", detectedPose, highestConfidence);
+    // メモリの解放
+    resizedTensor.dispose();
+    inputTensor.dispose();
   } catch (error) {
     console.error("推論中にエラーが発生しました:", error);
   }
