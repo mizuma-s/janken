@@ -1,6 +1,5 @@
 const MODEL_URL = "models/pose/";
 let model;
-// 初期化処理
 async function init() {
   try {
     const modelURL = "./models/pose/model.json";
@@ -20,7 +19,6 @@ async function init() {
     console.error("初期化中にエラーが発生しました:", error);
   }
 }
-// 推論ループ処理
 async function loop(videoElement) {
   try {
     await predictPose(videoElement); // 推論処理を実行
@@ -29,11 +27,18 @@ async function loop(videoElement) {
     console.error("ループ処理中にエラーが発生しました:", error);
   }
 }
-// ポーズ推論処理
 async function predictPose(videoElement) {
   try {
-    const { pose, posenetOutput } = await model.estimatePose(videoElement);
+    // canvas を使って推論
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = 640;
+    canvas.height = 480;
+    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+    const { pose, posenetOutput } = await model.estimatePose(canvas);
+    console.log("pose:", pose);
     const prediction = await model.predict(posenetOutput);
+    console.log("prediction:", prediction);
     let highestConfidence = 0;
     let detectedPose = "";
     prediction.forEach(p => {
@@ -48,7 +53,6 @@ async function predictPose(videoElement) {
     console.error("推論中にエラーが発生しました:", error);
   }
 }
-// ページ読み込み時に初期化を実行
 window.onload = init;
 
 async function loop(videoElement) {
