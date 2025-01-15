@@ -1,66 +1,63 @@
 const MODEL_URL = "models/pose/";
-let model, webcam, maxPredictions;
-window.onload = async function () {
-  console.log("ページが読み込まれました。");
+let model;
+async function init() {
   try {
-    await initModel();
-    console.log("モデルの初期化が完了しました。");
-    await initWebcam();
-    console.log("カメラの初期化が完了しました。");
-    window.requestAnimationFrame(loop);
+    console.log("モデルのロードを開始します...");
+    model = await tmPose.load("models/pose/model.json", "models/pose/metadata.json");
+    console.log("モデルのロードが完了しました。");
+    const stream = await initWebcam(); // カメラストリームを取得
+    const videoElement = document.getElementById("webcam");
+    // フレームの更新ループを開始
+    loop(videoElement);
   } catch (error) {
-    console.error("初期化中にエラーが発生しました:", error.message);
-    alert("初期化に失敗しました。設定を確認してください。");
+    console.error("初期化中にエラーが発生しました:", error);
   }
-};
-async function initModel() {
-  console.log("モデルのロード開始...");
-  model = await tmPose.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-  console.log("モデルロード完了");
-  maxPredictions = model.getTotalClasses();
-  console.log("クラス数:", maxPredictions);
 }
 async function initWebcam() {
   try {
     console.log("カメラの初期化を開始します...");
-    webcam = new tmPose.Webcam(500, 500, true); // サイズ: 500x500, 水平反転: true
-    console.log("webcam オブジェクト:", webcam); // デバッグログ
-    // setup のログ確認
-    console.log("webcam.setup() を実行します...");
-    await webcam.setup();
-    console.log("webcam.setup() が完了しました。");
-    // play のログ確認
-    console.log("webcam.play() を実行します...");
-    await webcam.play();
-    console.log("webcam.play() が完了しました。");
-    // webcam.stream のログ確認
-    console.log("webcam.stream の内容:", webcam.stream);
+    // カメラストリームを取得
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    console.log("カメラストリームを取得しました:", stream);
+    // <video> 要素にストリームを設定
     const videoElement = document.getElementById("webcam");
-    if (webcam.stream instanceof MediaStream) {
-      videoElement.srcObject = webcam.stream; // カメラストリームを設定
-      console.log("カメラストリームが設定されました。");
-    } else {
-      console.error("webcam.stream の型が不正です:", webcam.stream);
-      throw new Error("webcam.stream は MediaStream 型ではありません");
-    }
+    videoElement.srcObject = stream;
+    videoElement.play();
+    console.log("カメラ映像が設定されました。");
+    return stream; // 取得した MediaStream を返す
   } catch (error) {
-    console.error("カメラの初期化中にエラーが発生しました:", error.message);
+    console.error("カメラストリームの取得中にエラーが発生しました:", error);
     alert("カメラの初期化に失敗しました。ブラウザの設定やデバイスを確認してください。");
   }
 }
-async function testCameraAccess() {
+async function predictPose(videoElement) {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    console.log("カメラストリームを取得しました:", stream);
-    const videoElement = document.getElementById("webcam");
-    videoElement.srcObject = stream;
-    console.log("カメラ映像が表示されました。");
+    console.log("ポーズ推論を開始します...");
+    const { pose, posenetOutput } = await model.estimatePose(videoElement);
+    const prediction = await model.predict(posenetOutput);
+    let highestConfidence = 0;
+    let detectedPose = "";
+    prediction.forEach(p => {
+      if (p.probability > highestConfidence) {
+        highestConfidence = p.probability;
+        detectedPose = p.className;
+      }
+    });
+    document.getElementById("result").innerText = `${detectedPose} (${(highestConfidence * 100).toFixed(2)}%)`;
+    console.log("ポーズ推論結果:", detectedPose, highestConfidence);
   } catch (error) {
-    console.error("カメラストリームの取得中にエラーが発生しました:", error);
-    alert("カメラのアクセスが許可されていないか、エラーが発生しました。");
+    console.error("ポーズ推論中にエラーが発生しました:", error);
   }
 }
-testCameraAccess();
+async function loop(videoElement) {
+  try {
+    await predictPose(videoElement);
+    requestAnimationFrame(() => loop(videoElement));
+  } catch (error) {
+    console.error("ループ処理中にエラーが発生しました:", error);
+  }
+}
+window.onload = init;
 
 async function loop() {
   try {
