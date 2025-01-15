@@ -6,21 +6,21 @@ async function init() {
     const metadataURL = "./models/pose/metadata.json";
     console.log("モデルをロード中...");
     model = await tmPose.load(modelURL, metadataURL);
-    console.log("モデルのロード完了");
-    webcam = new tmPose.Webcam(500, 500, true);
+    console.log("モデルのロード完了。");
+    webcam = new tmPose.Webcam(500, 500, true); // サイズ: 500x500, 水平反転
     await webcam.setup();
     await webcam.play();
-    console.log("カメラの初期化完了");
     document.getElementById("webcam").srcObject = webcam.webcam;
+    console.log("カメラ初期化完了。");
     loop();
   } catch (error) {
-    console.error("初期化中にエラーが発生しました:", error);
+    console.error("初期化エラー:", error);
   }
 }
 async function loop() {
   try {
-    webcam.update();
-    await predict();
+    webcam.update(); // カメラ映像を更新
+    await predict(); // 推論を実行
     requestAnimationFrame(loop);
   } catch (error) {
     console.error("ループ処理中にエラーが発生しました:", error);
