@@ -33,13 +33,9 @@ async function initWebcam() {
 async function predictPose(videoElement) {
   try {
     console.log("ポーズ推論を開始します...");
-    // videoElement の内容を確認
-    console.log("videoElement の内容:", videoElement);
-    // Tensor に変換
-    const inputTensor = tf.browser.fromPixels(videoElement);
-    console.log("inputTensor:", inputTensor);
     // ポーズ推論
     const { pose, posenetOutput } = await model.estimatePose(videoElement);
+    console.log("ポーズ推論結果:", pose);
     const prediction = await model.predict(posenetOutput);
     let highestConfidence = 0;
     let detectedPose = "";
