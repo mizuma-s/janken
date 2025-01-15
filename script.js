@@ -1,45 +1,34 @@
 const MODEL_URL = "models/pose/";
-let model;
+let model, webcam;
 async function init() {
   try {
-    console.log("モデルのロードを開始します...");
-    model = await tmPose.load("models/pose/model.json", "models/pose/metadata.json");
-    console.log("モデルのロードが完了しました。");
-    const stream = await initWebcam(); // カメラストリームを取得
-    const videoElement = document.getElementById("webcam");
-    // フレームの更新ループを開始
-    loop(videoElement);
+    const modelURL = "./models/pose/model.json";
+    const metadataURL = "./models/pose/metadata.json";
+    console.log("モデルをロード中...");
+    model = await tmPose.load(modelURL, metadataURL);
+    console.log("モデルのロード完了");
+    webcam = new tmPose.Webcam(500, 500, true);
+    await webcam.setup();
+    await webcam.play();
+    console.log("カメラの初期化完了");
+    document.getElementById("webcam").srcObject = webcam.webcam;
+    loop();
   } catch (error) {
     console.error("初期化中にエラーが発生しました:", error);
   }
 }
-async function initWebcam() {
+async function loop() {
   try {
-    console.log("カメラの初期化を開始します...");
-    // カメラストリームを取得
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    console.log("カメラストリームを取得しました:", stream);
-    // <video> 要素にストリームを設定
-    const videoElement = document.getElementById("webcam");
-    videoElement.srcObject = stream;
-    videoElement.play();
-    console.log("カメラ映像が設定されました。");
-    return stream; // 取得した MediaStream を返す
+    webcam.update();
+    await predict();
+    requestAnimationFrame(loop);
   } catch (error) {
-    console.error("カメラストリームの取得中にエラーが発生しました:", error);
-    alert("カメラの初期化に失敗しました。ブラウザの設定やデバイスを確認してください。");
+    console.error("ループ処理中にエラーが発生しました:", error);
   }
 }
-async function predictPose(videoElement) {
+async function predict() {
   try {
-    console.log("ポーズ推論を開始します...");
-    // videoElement の状態を確認
-    console.log("videoElement の内容:", videoElement);
-    // fromPixels を使用してテンソルを生成
-    const inputTensor = tf.browser.fromPixels(videoElement);
-    console.log("生成されたテンソル:", inputTensor);
-    // ポーズ推論を実行
-    const { pose, posenetOutput } = await model.estimatePose(videoElement);
+    const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
     const prediction = await model.predict(posenetOutput);
     let highestConfidence = 0;
     let detectedPose = "";
@@ -50,18 +39,9 @@ async function predictPose(videoElement) {
       }
     });
     document.getElementById("result").innerText = `${detectedPose} (${(highestConfidence * 100).toFixed(2)}%)`;
-    console.log("ポーズ推論結果:", detectedPose, highestConfidence);
+    console.log("推論結果:", detectedPose, highestConfidence);
   } catch (error) {
-    console.error("ポーズ推論中にエラーが発生しました:", error);
-  }
-}
-async function loop(videoElement) {
-  try {
-    // フレームごとにポーズ推論を実行
-    await predictPose(videoElement);
-    requestAnimationFrame(() => loop(videoElement));
-  } catch (error) {
-    console.error("ループ処理中にエラーが発生しました:", error);
+    console.error("推論中にエラーが発生しました:", error);
   }
 }
 window.onload = init;
