@@ -29,9 +29,11 @@ async function init() {
 }
 
 async function startCamera() {
-  const videoElement = document.getElementById("webcam");
   try {
+    console.log("カメラにアクセスを開始...");
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    console.log("取得したMediaStream:", stream);
+    const videoElement = document.getElementById("webcam");
     videoElement.srcObject = stream;
     console.log("カメラにアクセス成功");
   } catch (error) {
