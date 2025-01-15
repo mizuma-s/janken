@@ -24,13 +24,16 @@ async function initWebcam() {
   try {
     console.log("カメラの初期化を開始します...");
     webcam = new tmPose.Webcam(500, 500, true); // サイズ: 500x500, 水平反転: true
-    console.log("webcam オブジェクト:", webcam); // webcam 全体をデバッグ表示
-    await webcam.setup(); // カメラをセットアップ
+    console.log("webcam オブジェクト:", webcam); // デバッグログ
+    // webcam.setup のエラーハンドリング
+    await webcam.setup().catch((error) => {
+      console.error("webcam.setup() 中にエラーが発生しました:", error);
+      throw new Error("webcam.setup() が失敗しました");
+    });
     console.log("webcam.setup() が完了しました。");
-    await webcam.play(); // カメラ映像を再生
+    console.log("webcam.stream の内容:", webcam.stream); // デバッグログ
+    await webcam.play();
     console.log("webcam.play() が完了しました。");
-    // デバッグログ: webcam.stream の内容を確認
-    console.log("webcam.stream の内容:", webcam.stream);
     const videoElement = document.getElementById("webcam");
     if (webcam.stream instanceof MediaStream) {
       videoElement.srcObject = webcam.stream; // カメラストリームを設定
@@ -41,10 +44,22 @@ async function initWebcam() {
     }
   } catch (error) {
     console.error("カメラの初期化中にエラーが発生しました:", error.message);
-    console.error("詳細エラー:", error);
     alert("カメラの初期化に失敗しました。ブラウザの設定やデバイスを確認してください。");
   }
 }
+async function testCameraAccess() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    console.log("カメラストリームを取得しました:", stream);
+    const videoElement = document.getElementById("webcam");
+    videoElement.srcObject = stream;
+    console.log("カメラ映像が表示されました。");
+  } catch (error) {
+    console.error("カメラストリームの取得中にエラーが発生しました:", error);
+    alert("カメラのアクセスが許可されていないか、エラーが発生しました。");
+  }
+}
+testCameraAccess();
 
 async function loop() {
   try {
