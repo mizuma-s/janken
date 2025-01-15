@@ -39,16 +39,30 @@
         console.error("モデルのロードに失敗:", error);
       }
       
-      maxPredictions = model.getTotalClasses();
-      // カメラ設定
-      const size = 500; // カメラ映像サイズ
-      const flip = true; // 水平反転
-      webcam = new tmPose.Webcam(size, size, flip);
-      await webcam.setup();
-      await webcam.play();
-      window.requestAnimationFrame(loop);
-      // ビデオをHTMLに追加
-      document.getElementById("webcam").srcObject = webcam.webcam;
+      try {
+        maxPredictions = model.getTotalClasses();
+        // カメラ設定
+        const size = 500; // カメラ映像サイズ
+        const flip = true; // 水平反転
+        webcam = new tmPose.Webcam(size, size, flip);
+        await webcam.setup();
+        await webcam.play();
+        const videoElement = document.getElementById("webcam");
+        if (webcam.webcam instanceof MediaStream) {
+          videoElement.srcObject = webcam.webcam;
+        } else {
+          throw new Error("webcam.webcamはMediaStream型ではありません。");
+        }
+
+        console.log("カメラが正常に初期化されました。");
+        window.requestAnimationFrame(loop);
+
+        // ビデオをHTMLに追加
+        //document.getElementById("webcam").srcObject = webcam.webcam;
+      } catch (error) {
+        console.error("初期化中にエラーが発生しました:", error);
+        alert("カメラの初期化に失敗しました。");
+      }
     }
     async function loop() {
       webcam.update(); // Webカメラ更新
