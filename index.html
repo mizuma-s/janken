@@ -40,12 +40,14 @@
       }
       
       try {
-        maxPredictions = model.getTotalClasses();
+        //maxPredictions = model.getTotalClasses();
         // カメラ設定
         const size = 500; // カメラ映像サイズ
         const flip = true; // 水平反転
         webcam = new tmPose.Webcam(size, size, flip);
+        console.log("カメラの初期化を開始します...");
         await webcam.setup();
+        console.log("webcam.webcamの内容:", webcam.webcam);
         await webcam.play();
         const videoElement = document.getElementById("webcam");
         if (webcam.webcam instanceof MediaStream) {
