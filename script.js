@@ -21,8 +21,6 @@ async function init() {
 }
 async function loop(videoElement) {
   try {
-    console.log("ループ開始: videoElement の確認中...");
-    console.log("videoElement:", videoElement); // **1. videoElement の内容をログ出力**
     await predictPose(videoElement); // 推論処理を実行
     requestAnimationFrame(() => loop(videoElement)); // 次のフレームで再度呼び出し
   } catch (error) {
@@ -35,14 +33,32 @@ async function predictPose(videoElement) {
     const ctx = canvas.getContext("2d");
     canvas.width = 640;
     canvas.height = 480;
+    // 映像を canvas に描画
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     console.log("canvas に描画完了。推論を開始します...");
-    // ポーズ推論
-    const { pose, posenetOutput } = await model.estimatePose(canvas);
-    console.log("pose:", pose); // **2. pose の内容をログ出力**
-    console.log("posenetOutput:", posenetOutput); // **3. posenetOutput の内容をログ出力**
-    const prediction = await model.predict(posenetOutput);
-    console.log("prediction:", prediction); // 推論結果をログ出力
+    console.log("canvas の内容:", canvas);
+    // model.estimatePose の実行
+    let pose, posenetOutput;
+    try {
+      console.log("model.estimatePose を実行中...");
+      ({ pose, posenetOutput } = await model.estimatePose(canvas));
+      console.log("pose:", pose);
+      console.log("posenetOutput:", posenetOutput);
+    } catch (error) {
+      console.error("model.estimatePose でエラーが発生しました:", error);
+      return;
+    }
+    // model.predict の実行
+    let prediction;
+    try {
+      console.log("model.predict を実行中...");
+      prediction = await model.predict(posenetOutput);
+      console.log("prediction:", prediction);
+    } catch (error) {
+      console.error("model.predict でエラーが発生しました:", error);
+      return;
+    }
+    // 推論結果を処理
     let highestConfidence = 0;
     let detectedPose = "";
     prediction.forEach(p => {
