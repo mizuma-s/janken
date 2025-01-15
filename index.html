@@ -14,6 +14,12 @@
 <body>
   <h1>Pose Detection with LINE Notify</h1>
   <video id="webcam" autoplay playsinline></video>
+  <script>
+    cosole.log("tmPose:", typeof tmPose);
+    if (typeof tmPose === "undefined") {
+      console.error("tmPoseが未定義です。スクリプトの読み込み順序を確認してください。");
+    }
+  </script>
   <script src="script.js"></script>
   <p id="result">Waiting for pose...</p>
   <script>
