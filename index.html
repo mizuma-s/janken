@@ -3,14 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pose Detection</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.8.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.4/dist/teachablemachine-pose.min.js"></script>
-  <script src="script.js" defer></script>
+  <title>Camera Test</title>
 </head>
 <body>
-  <h1>Pose Detection</h1>
+  <h1>Camera Test</h1>
   <video id="webcam" autoplay playsinline></video>
-  <p id="result">Waiting for pose...</p>
+  <script>
+    async function initWebcam() {
+      try {
+        const videoElement = document.getElementById("webcam");
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
+        await videoElement.play();
+        console.log("カメラが正常に動作しています。");
+      } catch (error) {
+        console.error("カメラの初期化に失敗しました:", error);
+      }
+    }
+    window.onload = initWebcam;
+  </script>
 </body>
 </html>
