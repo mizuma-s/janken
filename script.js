@@ -14,6 +14,7 @@ window.onload = async function () {
   }
 };
 async function initModel() {
+  console.log("initModel関数が呼び出されました。");
   try {
     console.log("モデルのロード開始...");
     model = await tmPose.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
