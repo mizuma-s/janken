@@ -14,31 +14,43 @@
   <script>
     let model, webcam;
     async function init() {
-      try {
-        const modelURL = "./models/pose/model.json";
-        const metadataURL = "./models/pose/metadata.json";
-        console.log("モデルをロード中...");
-        model = await tmPose.load(modelURL, metadataURL);
-        console.log("モデルのロード完了。");
-        webcam = new tmPose.Webcam(500, 500, true); // サイズ: 500x500, 水平反転
-        await webcam.setup();
-        await webcam.play();
-        document.getElementById("webcam").srcObject = webcam.webcam;
-        console.log("カメラの初期化完了。");
-        predict();
-      } catch (error) {
-        console.error("初期化エラー:", error);
-      }
+    try {
+      const modelURL = "./models/pose/model.json";
+      const metadataURL = "./models/pose/metadata.json";
+      console.log("モデルをロード中...");
+      model = await tmPose.load(modelURL, metadataURL);
+      console.log("モデルのロード完了。");
+      // カメラ映像を取得
+      const videoElement = document.getElementById("webcam");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoElement.srcObject = stream; // ここで MediaStream を設定
+      await videoElement.play();
+      console.log("カメラ初期化完了。");
+      loop(videoElement); // 推論ループを開始
+    } catch (error) {
+      console.error("初期化エラー:", error);
     }
-    async function predict() {
-      try {
-        const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
-        console.log("ポーズ推論結果:", pose);
-        document.getElementById("result").innerText = "ポーズ推論完了";
-      } catch (error) {
-        console.error("推論エラー:", error);
-      }
+  }
+  async function loop(videoElement) {
+    try {
+      // 推論処理
+      const { pose, posenetOutput } = await model.estimatePose(videoElement);
+      const prediction = await model.predict(posenetOutput);
+      let highestConfidence = 0;
+      let detectedPose = "";
+      prediction.forEach(p => {
+        if (p.probability > highestConfidence) {
+          highestConfidence = p.probability;
+          detectedPose = p.className;
+        }
+      });
+      document.getElementById("result").innerText = `${detectedPose} (${(highestConfidence * 100).toFixed(2)}%)`;
+      console.log("推論結果:", detectedPose, highestConfidence);
+      requestAnimationFrame(() => loop(videoElement));
+    } catch (error) {
+      console.error("ループ処理中にエラーが発生しました:", error);
     }
+  }
     window.onload = init;
   </script>
 </body>
