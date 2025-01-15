@@ -59,13 +59,13 @@ async function loop(videoElement) {
 }
 window.onload = init;
 
-async function loop() {
+async function loop(videoElement) {
   try {
-    webcam.update(); // カメラのフレームを更新
-    await predict(); // 推論処理
-    window.requestAnimationFrame(loop);
+    // フレームごとにポーズ推論を実行
+    await predictPose(videoElement);
+    requestAnimationFrame(() => loop(videoElement));
   } catch (error) {
-    console.error("ループ中にエラーが発生しました:", error);
+    console.error("ループ処理中にエラーが発生しました:", error);
   }
 }
 async function predict() {
