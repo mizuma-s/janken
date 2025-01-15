@@ -36,29 +36,12 @@ async function predictPose(videoElement) {
     // 映像を canvas に描画
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     console.log("canvas に描画完了。推論を開始します...");
-    console.log("canvas の内容:", canvas);
-    // model.estimatePose の実行
-    let pose, posenetOutput;
-    try {
-      console.log("model.estimatePose を実行中...");
-      ({ pose, posenetOutput } = await model.estimatePose(canvas));
-      console.log("pose:", pose);
-      console.log("posenetOutput:", posenetOutput);
-    } catch (error) {
-      console.error("model.estimatePose でエラーが発生しました:", error);
-      return;
-    }
-    // model.predict の実行
-    let prediction;
-    try {
-      console.log("model.predict を実行中...");
-      prediction = await model.predict(posenetOutput);
-      console.log("prediction:", prediction);
-    } catch (error) {
-      console.error("model.predict でエラーが発生しました:", error);
-      return;
-    }
-    // 推論結果を処理
+    // TensorFlow.js の fromPixels を使用
+    const inputTensor = tf.browser.fromPixels(canvas);
+    console.log("Tensor 作成成功:", inputTensor);
+    // model.predict を直接実行
+    const prediction = await model.predict(inputTensor);
+    console.log("prediction:", prediction);
     let highestConfidence = 0;
     let detectedPose = "";
     prediction.forEach(p => {
