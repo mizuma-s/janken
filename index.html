@@ -6,6 +6,7 @@
   <title>Pose Detection with LINE Notify</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.4/dist/teachablemachine-pose.min.js"></script>
+  <script src="script.js" defer></script>
   <style>
     body { text-align: center; font-family: Arial, sans-serif; }
     video { width: 100%; max-width: 500px; }
@@ -14,103 +15,6 @@
 <body>
   <h1>Pose Detection with LINE Notify</h1>
   <video id="webcam" autoplay playsinline></video>
-  <script>
-    console.log("tmPose:", typeof tmPose);
-    if (typeof tmPose === "undefined") {
-      console.error("tmPoseが未定義です。スクリプトの読み込み順序を確認してください。");
-    }
-  </script>
-  <script src="script.js"></script>
   <p id="result">Waiting for pose...</p>
-  <script>
-    // LINE Notifyトークン
-    const LINE_NOTIFY_TOKEN = "i4mSGPOxKPSsOdA0lJy3lmUWdcpwJrtOMKcO4TYodJ4";
-    // Teachable MachineモデルURL
-    const MODEL_URL = "models/pose/";
-    (() => {
-    let model, webcam, ctx, labelContainer, maxPredictions;
-    async function init() {
-      // モデルのロード
-      try {
-        console.log("モデルをロード中...");
-        model = await tmPose.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-        console.log("モデルロード完了");
-      } catch (error) {
-        console.error("モデルのロードに失敗:", error);
-      }
-      
-      try {
-        //maxPredictions = model.getTotalClasses();
-        // カメラ設定
-        const size = 500; // カメラ映像サイズ
-        const flip = true; // 水平反転
-        webcam = new tmPose.Webcam(size, size, flip);
-        console.log("カメラの初期化を開始します...");
-        await webcam.setup();
-        console.log("webcam.webcamの内容:", webcam.webcam);
-        await webcam.play();
-        const videoElement = document.getElementById("webcam");
-        if (webcam.webcam instanceof MediaStream) {
-          videoElement.srcObject = webcam.webcam;
-        } else {
-          throw new Error("webcam.webcamはMediaStream型ではありません。");
-        }
-
-        console.log("カメラが正常に初期化されました。");
-        window.requestAnimationFrame(loop);
-
-        // ビデオをHTMLに追加
-        //document.getElementById("webcam").srcObject = webcam.webcam;
-      } catch (error) {
-        console.error("初期化中にエラーが発生しました:", error);
-        alert("カメラの初期化に失敗しました。");
-      }
-    }
-    async function loop() {
-      webcam.update(); // Webカメラ更新
-      await predict();
-      window.requestAnimationFrame(loop);
-    }
-    async function predict() {
-      // ポーズ推論
-      const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
-      const prediction = await model.predict(posenetOutput);
-      // 最も確信度の高い結果を取得
-      let highestConfidence = 0;
-      let detectedPose = "";
-      prediction.forEach(p => {
-        if (p.probability > highestConfidence) {
-          highestConfidence = p.probability;
-          detectedPose = p.className;
-        }
-      });
-      // 表示更新
-      document.getElementById("result").innerText = `${detectedPose} (${(highestConfidence * 100).toFixed(2)}%)`;
-      // 条件に応じてLINE Notify通知
-      if (highestConfidence > 0.8) {
-        sendLineNotify(`Detected Pose: ${detectedPose}`);
-      }
-    }
-    function sendLineNotify(message) {
-      console.log("LINE Notify送信中...");
-      fetch("https://notify-api.line.me/api/notify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Authorization": `Bearer ${LINE_NOTIFY_TOKEN}`
-        },
-        body: `message=${encodeURIComponent(message)}`
-      })
-      .then(response => {
-        if (response.ok) {
-          console.log("LINE Notify sent!");
-        } else {
-          console.error("Failed to send LINE Notify");
-        }
-      });
-    }
-    init();
-  })();
-  </script>
 </body>
 </html>
