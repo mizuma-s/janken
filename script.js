@@ -25,15 +25,16 @@ async function initWebcam() {
     console.log("カメラの初期化を開始します...");
     webcam = new tmPose.Webcam(500, 500, true); // サイズ: 500x500, 水平反転: true
     console.log("webcam オブジェクト:", webcam); // デバッグログ
-    // webcam.setup のエラーハンドリング
-    await webcam.setup().catch((error) => {
-      console.error("webcam.setup() 中にエラーが発生しました:", error);
-      throw new Error("webcam.setup() が失敗しました");
-    });
+    // setup のログ確認
+    console.log("webcam.setup() を実行します...");
+    await webcam.setup();
     console.log("webcam.setup() が完了しました。");
-    console.log("webcam.stream の内容:", webcam.stream); // デバッグログ
+    // play のログ確認
+    console.log("webcam.play() を実行します...");
     await webcam.play();
     console.log("webcam.play() が完了しました。");
+    // webcam.stream のログ確認
+    console.log("webcam.stream の内容:", webcam.stream);
     const videoElement = document.getElementById("webcam");
     if (webcam.stream instanceof MediaStream) {
       videoElement.srcObject = webcam.stream; // カメラストリームを設定
