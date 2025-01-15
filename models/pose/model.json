@@ -14,7 +14,7 @@
                         "config":{
                             "scale":1,
                             "mode":"fan_in",
-                            "distribution":"normal",
+                            "distribution": "normal",
                             "seed": null
                         }
                     },
@@ -73,7 +73,7 @@
             }]
         },
         "keras_version":"tfjs-layers 1.3.1",
-        "backend":"tensor_flow.js"
+        "backend":"tensorflow.js"
     },
     "format":"layers-model",
     "generatedBy":"TensorFlow.js tfjs-layers v1.3.1",
