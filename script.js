@@ -24,17 +24,19 @@ async function initWebcam() {
   try {
     console.log("カメラの初期化を開始します...");
     webcam = new tmPose.Webcam(500, 500, true);
+    console.log("webcam オブジェクト:", webcam); // デバッグ
     await webcam.setup();
     console.log("webcam.setup() が完了しました。");
+    console.log("webcam.webcam の内容:", webcam.webcam); // デバッグ
     await webcam.play();
     console.log("webcam.play() が完了しました。");
     const videoElement = document.getElementById("webcam");
-    if ("srcObject" in videoElement) {
+    if (webcam.webcam instanceof MediaStream) {
       videoElement.srcObject = webcam.webcam;
       console.log("カメラストリームが設定されました。");
     } else {
-      videoElement.src = window.URL.createObjectURL(webcam.webcam); // フォールバック処理
-      console.log("フォールバック処理を実行しました。");
+      console.error("webcam.webcam の型が不正です:", webcam.webcam);
+      throw new Error("webcam.webcam は MediaStream 型ではありません");
     }
   } catch (error) {
     console.error("カメラの初期化中にエラーが発生しました:", error.message);
