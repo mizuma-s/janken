@@ -15,7 +15,7 @@
   <h1>Pose Detection with LINE Notify</h1>
   <video id="webcam" autoplay playsinline></video>
   <script>
-    cosole.log("tmPose:", typeof tmPose);
+    console.log("tmPose:", typeof tmPose);
     if (typeof tmPose === "undefined") {
       console.error("tmPoseが未定義です。スクリプトの読み込み順序を確認してください。");
     }
@@ -27,6 +27,7 @@
     const LINE_NOTIFY_TOKEN = "i4mSGPOxKPSsOdA0lJy3lmUWdcpwJrtOMKcO4TYodJ4";
     // Teachable MachineモデルURL
     const MODEL_URL = "models/pose/";
+    (() => {
     let model, webcam, ctx, labelContainer, maxPredictions;
     async function init() {
       // モデルのロード
@@ -93,6 +94,7 @@
       });
     }
     init();
+  })();
   </script>
 </body>
 </html>
