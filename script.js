@@ -23,24 +23,22 @@ async function initModel() {
 async function initWebcam() {
   try {
     console.log("カメラの初期化を開始します...");
-    webcam = new tmPose.Webcam(500, 500, true);
+    webcam = new tmPose.Webcam(500, 500, true); // サイズ: 500x500, 水平反転: true
     console.log("webcam オブジェクト:", webcam); // デバッグ
-    await webcam.setup();
+    await webcam.setup(); // カメラをセットアップ
     console.log("webcam.setup() が完了しました。");
-    console.log("webcam.webcam の内容:", webcam.webcam); // デバッグ
-    await webcam.play();
+    await webcam.play(); // カメラ映像を再生
     console.log("webcam.play() が完了しました。");
     const videoElement = document.getElementById("webcam");
-    if (webcam.webcam instanceof MediaStream) {
-      videoElement.srcObject = webcam.webcam;
+    if (webcam.stream instanceof MediaStream) {
+      videoElement.srcObject = webcam.stream; // カメラストリームを設定
       console.log("カメラストリームが設定されました。");
     } else {
-      console.error("webcam.webcam の型が不正です:", webcam.webcam);
-      throw new Error("webcam.webcam は MediaStream 型ではありません");
+      console.error("webcam.stream の型が不正です:", webcam.stream);
+      throw new Error("webcam.stream は MediaStream 型ではありません");
     }
   } catch (error) {
     console.error("カメラの初期化中にエラーが発生しました:", error.message);
-    console.error("詳細エラー:", error);
     alert("カメラの初期化に失敗しました。ブラウザの設定やデバイスを確認してください。");
   }
 }
